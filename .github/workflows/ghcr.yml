@@ -9,12 +9,16 @@ jobs:
   push:
     runs-on: ubuntu-latest
     steps:
-      - name: Build and push a tiny OCI image to GHCR
+      - name: Build and push two tagged versions to GHCR
         run: |
           set -e
-          mkdir -p /tmp/ctx
-          echo "ghsec-d package fixture canary" > /tmp/ctx/canary.txt
-          printf 'FROM scratch\nCOPY canary.txt /canary.txt\n' > /tmp/ctx/Dockerfile
-          docker build -t ghcr.io/dangga2073-design/ghsec-d-pkg:latest -f /tmp/ctx/Dockerfile /tmp/ctx
+          mkdir -p /tmp/ctx1 /tmp/ctx2
+          echo "ghsec-d package fixture canary v1" > /tmp/ctx1/canary.txt
+          printf 'FROM scratch\nCOPY canary.txt /canary.txt\n' > /tmp/ctx1/Dockerfile
+          echo "ghsec-d package fixture canary v2 distinct content" > /tmp/ctx2/canary.txt
+          printf 'FROM scratch\nCOPY canary.txt /canary.txt\n' > /tmp/ctx2/Dockerfile
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker build -t ghcr.io/dangga2073-design/ghsec-d-pkg:latest -f /tmp/ctx1/Dockerfile /tmp/ctx1
           docker push ghcr.io/dangga2073-design/ghsec-d-pkg:latest
+          docker build -t ghcr.io/dangga2073-design/ghsec-d-pkg:v2 -f /tmp/ctx2/Dockerfile /tmp/ctx2
+          docker push ghcr.io/dangga2073-design/ghsec-d-pkg:v2
